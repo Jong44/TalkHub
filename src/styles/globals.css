@@ -8,12 +8,14 @@
   --primary-color: #FF6347;
   --secondary-color: #6C757D;
   --accent-color: #FFD700;
-  --background-color: #FFFFFF;
+  --background-color: #F1F1F1;
   --text-color: #343A40;
+  --card-background-color: #FFFFFF;
 }
 
 body {
   font-family: 'Poppins', sans-serif;
+  background-color: var(--background-color);
 }
 
 input:active, input:focus, textarea:active, textarea:focus {
