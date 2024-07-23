@@ -1,7 +1,7 @@
 import db from '@/config/firestore'
 import app from "@/config/firebase";
 import { createUserWithEmailAndPassword, getAuth, onAuthStateChanged, sendEmailVerification, signInWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from '@firebase/firestore';
+import { doc, getDoc, setDoc } from '@firebase/firestore';
 
 
 const response = {
@@ -78,15 +78,18 @@ const logout = async () => {
 
 const getUser = async () => {
     const auth = getAuth(app);
-    let user = null;
 
-    onAuthStateChanged(auth, (currentUser) => {
+    onAuthStateChanged(auth, async (currentUser) => {
         if(currentUser){
-            user = currentUser;
+            response.status = "success";
+            response.data = currentUser.uid;
+        }else{
+            response.status = "error";
+            response.message = "User tidak ditemukan";
         }
     });
 
-    return user;
+    return response;
 }
 
 
@@ -94,5 +97,6 @@ const getUser = async () => {
 module.exports = {
     registerWithEmailAndPassword,
     loginWithEmailAndPassword,
-    logout
+    logout,
+    getUser
 }

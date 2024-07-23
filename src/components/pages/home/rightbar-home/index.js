@@ -6,7 +6,7 @@ import CardTrending from '@/components/global/cardtrending'
 
 const RightBarHome = () => {
   return (
-    <div className='w-[15rem] flex flex-col gap-7'>
+    <div className='w-[15rem] flex flex-col gap-7 max-lg:w-[12rem] max-md:hidden'>
         <CardSearch />
         <CardTrending />
     </div>

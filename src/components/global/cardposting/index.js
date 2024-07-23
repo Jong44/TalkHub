@@ -1,10 +1,14 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import CardLayout from '../cardlayout'
 import PrimaryButton from '../primarybutton'
 import Icon from '../icon'
 import Swal from 'sweetalert2'
+import { getDownloadURL, getStorage, ref, uploadBytesResumable } from '@firebase/storage'
+import { addDoc, collection, doc, getDoc, serverTimestamp } from '@firebase/firestore'
+import db from '@/config/firestore'
+import Image from 'next/image'
 
-const CardPosting = () => {
+const CardPosting = ({uid, photoURL}) => {
   const imageRef = useRef(null);
   const videoRef = useRef(null);
   const [error, setError] = useState('');
@@ -12,6 +16,9 @@ const CardPosting = () => {
     file: null,
     type: ''
   });
+  const [caption, setCaption] = useState('');
+  const [progress, setProgress] = useState(0);
+
   const alertSwals = ({title, status, icon}) => {
     Swal.fire({
       title,
@@ -21,13 +28,30 @@ const CardPosting = () => {
       timerProgressBar: true
     })
   }
+
+  const alertUpload = () => {
+    Swal.fire({
+      title: 'Tunggu Sedang Mengupload!',
+      didOpen: () => {
+        const timer = setInterval(() => {
+          setProgress((prev) => {
+            if(prev >= 100) {
+              clearInterval(timer);
+              return 100;
+            }
+            return prev + 10;
+          }
+          )
+        }, 1000)
+      }
+    }) 
+  }
+
   const [fitImage, setFitImage] = useState('object-fill');
   
   const handleFitImage = (e) => {
     setFitImage(e.target.value);
   }
-
-    
 
   const handleImageUpload = () => {
     imageRef.current.click();
@@ -56,15 +80,78 @@ const CardPosting = () => {
     }
   }
 
+  const handleChange = (e) => {
+    setCaption(e.target.value);
+  }
+
+  const handlePost = () => {
+    if(!caption) {
+      alertSwals({title: 'Caption tidak boleh kosong', status: 'error', icon: 'error'});
+      return;
+    }
+    if(!file.file) {
+      handleUploadFirestore({url: ''});
+    }else{
+      handleUploadFile();
+    }
+    setCaption('');
+    setFile({file: null, type: ''});
+    setFitImage('object-fill');
+  }
+
+  const handleUploadFile = () => {
+    const storage = getStorage();
+    try {
+      const storageRef = ref(storage, 'posts/' + file.file.name);
+      const uploadTask = uploadBytesResumable(storageRef, file.file);
+      alertUpload();
+      uploadTask.on('state_changed', (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setProgress(progress);
+      }, (error) => {
+        alertSwals({title: error.message, status: 'error', icon: 'error'});
+      }, () => {
+        getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+          handleUploadFirestore({url});
+        })
+      })
+    } catch (error) {
+      setError(error.message);
+    }
+  }
+
+  const handleUploadFirestore = ({
+    url
+  }) => {
+    try {
+      const docRef = addDoc(collection(db, 'posts'), {
+        caption: caption,
+        file: url ? {
+          url,
+          type: file.type,
+          fitImage: fitImage ? fitImage : 'object-fill'
+        } : null,
+        uid: uid,
+        createdAt: serverTimestamp()
+      });
+      alertSwals({title: 'Post Success', status: 'success', icon: 'success'});
+    } catch (error) {
+      alertSwals({title: error.message, status: 'error', icon: 'error'});
+    }
+  }
+    
+
 
 
   return (
     <CardLayout>
         <div className='p-4'>
            <div className='flex items-start gap-3'>
-              <div className='w-12 h-12 bg-gray-200 rounded-full'></div>
+              <div className='w-12 h-12'>
+              {photoURL && photoURL !== "" ? <Image src={photoURL} alt='profile' width={80} height={80} className='rounded-full' /> : <Image src='/assets/icons/user.svg' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
+              </div>
               <div className='flex-1'>
-                <textarea className='w-full p-3 resize-none focus:outline-none text-sm' placeholder='What are you thinking?'></textarea>
+                <textarea className='w-full p-3 resize-none focus:outline-none text-sm' placeholder='What are you thinking?' onChange={handleChange} value={caption}></textarea>
                 {
                   file.file && (
                     <div className='w-full h-44 mt-3 bg-gray-200 rounded-md relative'>
@@ -101,7 +188,7 @@ const CardPosting = () => {
                 </div>
               </div>
               <div className='w-20'>
-                <PrimaryButton text='Post' className={'rounded-3xl text-sm'} />
+                <PrimaryButton text='Post' className={'rounded-3xl text-sm'} onClick={handlePost} />
               </div>
             </div>
         </div>
