@@ -17,18 +17,13 @@ const CardTrending = () => {
             if(data){
                 trending = Object.keys(data)
             }
-            trending.map(async (item) => {
-                total.push(
-                    Object.keys(data[item]).length
-                )
+            finalTags = trending.map(tag => {
+                total = Object.keys(data[tag]).length
+                return {
+                    tag: tag,
+                    total: total
+                }
             })
-            trending.map((_, index) => {
-                finalTags.push({
-                    tag: trending[index],
-                    total: total[index]
-                })
-            })
-            // Sort by total post dimana total post terbanyak berada di atas terus hanya ambil 5 data
             setTags(finalTags.sort((a, b) => b.total - a.total).slice(0, 5))
         })
     }

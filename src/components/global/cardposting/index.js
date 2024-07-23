@@ -174,7 +174,7 @@ const CardPosting = ({uid, photoURL}) => {
         <div className='p-4'>
            <div className='flex items-start gap-3'>
               <div className='w-12 h-12'>
-              {photoURL && photoURL !== "" ? <Image src={photoURL} alt='profile' width={80} height={80} className='rounded-full' /> : <Image src='/assets/icons/user.svg' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
+              {photoURL && photoURL !== "" ? <Image src={photoURL} alt='profile' width={0} height={0} className='rounded-full w-full h-full' /> : <Image src='/assets/icons/user.svg' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
               </div>
               <div className='flex-1'>
                 <textarea className='w-full p-3 resize-none focus:outline-none text-sm' placeholder='What are you thinking?' onChange={handleChange} value={caption}></textarea>

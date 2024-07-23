@@ -41,7 +41,7 @@ const CardUserRecomendation = ({
                     user.map((item, index) => (
                         <div className='flex items-center' key={index}>
                             <div className='w-10 h-10 bg-gray-300 rounded-full'>
-                                {item.photoURL ? <Image src={item.photoURL} alt='profile' width={0} height={0} className='rounded-full' /> : <Image src='/assets/icons/user.svg' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
+                                {item.photoURL ? <Image src={item.photoURL} alt='profile' width={0} height={0} className='rounded-full w-full h-full' sizes=' (max-width: 768px) 100vw, (max-width: 1024px) 100vw, 1024px' /> : <Image src='/assets/icons/user.svg' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
                             </div>
                             <div className='ml-3'>
                                 <p className='text-sm font-semibold'>{item.fullname}</p>

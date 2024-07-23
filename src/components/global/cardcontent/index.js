@@ -87,7 +87,7 @@ const CardContent = ({ item, uid }) => {
             <div className='p-5'>
                 <div className='flex items-center gap-2'>
                     <div className='w-10 h-10 bg-gray-200 rounded-full'>
-                        {user.photoURL ? <Image src={user.photoURL} alt='profile' width={80} height={80} className='rounded-full' /> : <Image src='/assets/icons/user.svg' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
+                        {user.photoURL ? <Image src={user.photoURL} alt='profile' width={0} height={0} className='rounded-full w-full h-full' /> : <Image src='/assets/icons/user.svg' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
                     </div>
                     <div className='text-sm'>
                         <p className='font-bold'>{user.fullname}</p>
