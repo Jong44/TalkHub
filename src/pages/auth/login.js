@@ -89,7 +89,7 @@ const Index = () => {
             <p className="text-gray-400 text-xs">Atau</p>
             <hr className="border-t border-gray-300 w-1/2" />
           </div>
-          <form className="flex flex-col gap-2 mb-3" onClick={handleSubmit}>
+          <form className="flex flex-col gap-2 mb-3" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-1">
               <label htmlFor="email" className="text-sm">
                 Email

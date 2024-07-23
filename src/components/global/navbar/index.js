@@ -121,7 +121,7 @@ const Navbar = () => {
 
 
     return (
-        <nav className='px-[13rem] py-5 border bg-white max-lg:p-5'>
+        <nav className='px-[13rem] py-5 border bg-white max-lg:p-5 text-text-color'>
             {/* Default Menu */}
             <div className='flex justify-between items-center max-md:hidden'>
                 <div className='flex gap-10 max-md:hidden'>
@@ -135,7 +135,7 @@ const Navbar = () => {
                                 }
                                 return (
                                     <Link href={item.url} key={index}>
-                                        <p className={router.pathname === item.url ? 'text-primary-color font-bold' : ''}>{item.title}</p>
+                                        <p className={router.pathname === item.url ? 'text-primary-color font-semibold' : 'font-semibold'}>{item.title}</p>
                                     </Link>
                                 )
                             }

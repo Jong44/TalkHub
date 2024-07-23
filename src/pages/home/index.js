@@ -51,7 +51,8 @@ const Home = () => {
         ...doc.data()
       }
     })
-    setDataContent(data)
+    const orderContent = data.sort((a, b) => b.createdAt - a.createdAt)
+    setDataContent(orderContent)
   }
 
   if(loading) return <p>Loading...</p>
@@ -69,7 +70,7 @@ const Home = () => {
               <CardPosting uid={uid} photoURL={dataUser.photoURL} />
               <div className='mt-7 flex flex-col gap-5'>
                {dataContent.map((item, index) => (
-                 <CardContent key={index} item={item} />
+                 <CardContent key={index} item={item} uid={uid} />
                ))}
               </div>
             </div>

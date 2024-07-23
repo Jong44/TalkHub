@@ -7,6 +7,7 @@ import { getDownloadURL, getStorage, ref, uploadBytesResumable } from '@firebase
 import { addDoc, collection, doc, getDoc, serverTimestamp } from '@firebase/firestore'
 import db from '@/config/firestore'
 import Image from 'next/image'
+import uploadRealtimeDatabase from '@/service/PostinganService'
 
 const CardPosting = ({uid, photoURL}) => {
   const imageRef = useRef(null);
@@ -31,7 +32,7 @@ const CardPosting = ({uid, photoURL}) => {
 
   const alertUpload = () => {
     Swal.fire({
-      title: 'Tunggu Sedang Mengupload!',
+      title: 'Sedang Mengupload!',
       didOpen: () => {
         const timer = setInterval(() => {
           setProgress((prev) => {
@@ -43,7 +44,8 @@ const CardPosting = ({uid, photoURL}) => {
           }
           )
         }, 1000)
-      }
+      },
+      showConfirmButton: false,
     }) 
   }
 
@@ -84,22 +86,10 @@ const CardPosting = ({uid, photoURL}) => {
     setCaption(e.target.value);
   }
 
-  const handlePost = () => {
-    if(!caption) {
-      alertSwals({title: 'Caption tidak boleh kosong', status: 'error', icon: 'error'});
-      return;
-    }
-    if(!file.file) {
-      handleUploadFirestore({url: ''});
-    }else{
-      handleUploadFile();
-    }
-    setCaption('');
-    setFile({file: null, type: ''});
-    setFitImage('object-fill');
-  }
-
-  const handleUploadFile = () => {
+  const handleUploadFile = ({
+    tag,
+    finalCaption,
+  }) => {
     const storage = getStorage();
     try {
       const storageRef = ref(storage, 'posts/' + file.file.name);
@@ -112,7 +102,11 @@ const CardPosting = ({uid, photoURL}) => {
         alertSwals({title: error.message, status: 'error', icon: 'error'});
       }, () => {
         getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-          handleUploadFirestore({url});
+          handleUploadFirestore({
+            tag,
+            finalCaption,
+            url
+          });
         })
       })
     } catch (error) {
@@ -120,12 +114,14 @@ const CardPosting = ({uid, photoURL}) => {
     }
   }
 
-  const handleUploadFirestore = ({
+  const handleUploadFirestore = async ({
+    tag,
+    finalCaption,
     url
   }) => {
     try {
-      const docRef = addDoc(collection(db, 'posts'), {
-        caption: caption,
+      const docRef = await addDoc(collection(db, 'posts'), {
+        caption: finalCaption,
         file: url ? {
           url,
           type: file.type,
@@ -134,10 +130,40 @@ const CardPosting = ({uid, photoURL}) => {
         uid: uid,
         createdAt: serverTimestamp()
       });
-      alertSwals({title: 'Post Success', status: 'success', icon: 'success'});
+      if(docRef) {
+        uploadRealtimeDatabase({idPost: docRef.id, tag: tag, idUser: uid});
+        alertSwals({title: 'Post Success', status: 'success', icon: 'success'});
+      }
     } catch (error) {
       alertSwals({title: error.message, status: 'error', icon: 'error'});
     }
+  }
+
+  const handlePost = () => {
+    if(!caption) {
+      alertSwals({title: 'Caption tidak boleh kosong', status: 'error', icon: 'error'});
+      return;
+    }
+    const tag = caption.match(/#[a-z0-9]+/gi);
+    const captionFormat = caption.replace(/\n/g, '<br>');
+    if(!file.file) {
+      handleUploadFirestore({
+        tag,
+        finalCaption: captionFormat
+      });
+    }else{
+      handleUploadFile({
+        tag,
+        finalCaption: captionFormat
+      });
+    }
+    setCaption('');
+    setFile({
+      file: null,
+      type: ''
+    });
+    setProgress(0);
+    setFitImage('object-fill');
   }
     
 
@@ -179,11 +205,11 @@ const CardPosting = ({uid, photoURL}) => {
             <div className='flex items-end justify-between mt-3'>
               <div className='flex items-end gap-3'>
                 <div onClick={handleImageUpload} className='cursor-pointer'>
-                  <Icon icon={['fas', 'image']} className='text-primary-color text-xl' />
+                  <Image src='/assets/icons/gallery.svg' alt='image' width={20} height={20} />
                   <input type='file' ref={imageRef} className='hidden'  accept='image/*' onChange={handleFileChange} />
                 </div>
                 <div onClick={handleVideoUpload} className='cursor-pointer'>
-                  <Icon icon={['fas', 'video']} className='text-primary-color text-xl' />
+                  <Image src='/assets/icons/video.svg' alt='image' width={20} height={20} />
                   <input type='file' ref={videoRef} className='hidden' accept='video/*' onChange={handleFileChange} />
                 </div>
               </div>
