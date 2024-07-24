@@ -10,6 +10,7 @@ const CardProfileData = ({ user }) => {
     const [dataView, setDataView] = useState(user)
     const [dataUser, setDataUser] = useState(user)
     const [isOpenBio, setIsOpenBio] = useState(false)
+    const [isOpenUsername, setIsOpenUsername] = useState(false)
     const [isOpenJob, setIsOpenJob] = useState(false)
     const [isOpenLocation, setIsOpenLocation] = useState(false)
     const [isOpenGender, setIsOpenGender] = useState(false)
@@ -23,6 +24,11 @@ const CardProfileData = ({ user }) => {
     const handleCloseBio = (isOpen) => {
         setIsOpenBio(isOpen)
     }
+
+    const handleCloseUsername = (isOpen) => {
+        setIsOpenUsername(isOpen)
+    }
+
 
     const handleCloseJob = (isOpen) => {
         setIsOpenJob(isOpen)
@@ -55,6 +61,19 @@ const CardProfileData = ({ user }) => {
         }, { merge: true })
         setIsOpenBio(false)
     }
+
+    const handleSaveUsername = () => {
+        const docRef = doc(db, 'users', user.uid)
+        setDataView({
+            ...dataView,
+            username: dataUser.username
+        })
+        setDoc(docRef, {
+            username: dataUser.username
+        }, { merge: true })
+        setIsOpenUsername(false)
+    }
+
 
     const handleSaveJob = () => {
         const docRef = doc(db, 'users', user.uid)
@@ -117,6 +136,15 @@ const CardProfileData = ({ user }) => {
             <p className='text-xs underline text-primary-color cursor-pointer mb-5' onClick={()=>setIsOpenBio(!isOpenBio)}>Edit Bio</p>
             <div className='flex flex-col gap-3'>
                 <div className='flex items-center gap-3'>
+                    <Image src='/assets/icons/user-octagon.svg' width={20} height={20} />
+                    {dataView.username ? (
+                        <p className='text-[13px] font-semibold text-gray-500 cursor-pointer hover:text-primary-color' onClick={()=>setIsOpenUsername(!isOpenUsername)}>{dataView.username}</p>
+                    ) : (
+                        <p className='text-xs underline text-primary-color cursor-pointer' onClick={()=>setIsOpenUsername(!isOpenUsername)}>Edit Userbane</p>
+                    )
+                    }
+                </div>
+                <div className='flex items-center gap-3'>
                     <Image src='/assets/icons/briefcase.svg' width={20} height={20} />
                     {dataView.job ? (
                         <p className='text-[13px] font-semibold text-gray-500 cursor-pointer hover:text-primary-color' onClick={()=>setIsOpenJob(!isOpenJob)}>{dataView.job}</p>
@@ -159,6 +187,13 @@ const CardProfileData = ({ user }) => {
                         <textarea className='w-full h-20 rounded-md p-3 bg-slate-100 text-sm outline-none border-none resize-none' value={dataUser.bio} placeholder='Masukkan Bio Anda' onChange={handleChanges} name="bio">
 
                         </textarea>
+                    </LayoutInputData>
+                )
+            }
+            {
+                isOpenUsername && (
+                    <LayoutInputData onClose={handleCloseJob} title={"Edit Job"} onSave={handleSaveUsername}>
+                        <input type='text' className='w-full rounded-md p-3 bg-slate-100 text-sm outline-none border-none' value={dataUser.username} placeholder='Masukkan Username' onChange={handleChanges} name="username" />
                     </LayoutInputData>
                 )
             }

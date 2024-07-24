@@ -7,32 +7,48 @@ import { doc, getDoc } from '@firebase/firestore'
 import db from '@/config/firestore'
 import getTime from '@/utils/gettime'
 import { getLikeComment } from '@/service/PostinganService'
-import { onValue, ref, set } from '@firebase/database'
+import { onValue, ref, serverTimestamp, set } from '@firebase/database'
 import realDb from '@/config/database'
+import convertTime from '@/utils/converTime'
 
 const CardContent = ({ item, uid }) => {
     const [openComment, setOpenComment] = useState(false)
     const [user, setUser] = useState({})
+    const [userContent, setUserContent] = useState({})
     const [formatedCaption, setFormatedCaption] = useState('')
     const [like, setLike] = useState(0)
-    const [comment, setComment] = useState(0)
     const [isLike, setIsLike] = useState(false)
+    const [comment, setComment] = useState(0)
+    const [inputComment, setInputComment] = useState('')
+    const [listComment, setListComment] = useState([])
+
+    const handleChangeComment = (e) => {
+        setInputComment(e.target.value)
+    }
 
     const handleOpenComment = () => {
         setOpenComment(!openComment)
     }
 
-    const getUser = async () => {
+    const getUserContent = async () => {
         const docRef = doc(db, "users", item.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            setUserContent(docSnap.data())
+        }
+    }
+
+    const getUser = async () => {
+        const docRef = doc(db, "users", uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             setUser(docSnap.data())
         }
-        console.log(uid)
     }
 
     useEffect(() => {
         handleGetLikeComment()
+        getUserContent()
         getUser()
         filterTag()
     }, [])
@@ -61,6 +77,29 @@ const CardContent = ({ item, uid }) => {
                     setIsLike(false)
                     set(postRefUid, null)
                 }
+                
+            }
+        });
+        const commentRef = ref(realDb, 'posts/' + item.id + '/comment/total');
+        onValue(commentRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                setComment(data)
+            }
+        });
+        const commentRefUid = ref(realDb, 'posts/' + item.id + '/comment/');
+        onValue(commentRefUid, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                // kondisi untuk tidak mengambil key total
+                const keys = Object.keys(data).filter(key => key !== 'total');
+                const list = keys.map(key => {
+                    return {
+                        id: key,
+                        ...data[key]
+                    }
+                })
+                setListComment(list)
             }
         });
     }
@@ -81,16 +120,31 @@ const CardContent = ({ item, uid }) => {
         handleGetLikeComment()
     }
 
+    const handleUploadComment = () => {
+        
+        // membuat logic untuk mengupload komentar ke database realtime dimana pathnya adalah posts/{item.id}/comment/{comment.id} comment.id bisa di generate dengan menggunakan timestamp
+        const timestamp = new Date().getTime();
+        const commentRef = ref(realDb, 'posts/' + item.id + '/comment/' + timestamp);
+        set(commentRef, {
+            uid: uid,
+            comment: inputComment,
+            createdAt: serverTimestamp()
+        });
+        const totalRef = ref(realDb, 'posts/' + item.id + '/comment/total');
+        set(totalRef, comment + 1);
+        setInputComment('')
+    }
+
 
     return (
         <CardLayout>
             <div className='p-5'>
                 <div className='flex items-center gap-2'>
                     <div className='w-10 h-10 bg-gray-200 rounded-full'>
-                        {user.photoURL ? <Image src={user.photoURL} alt='profile' width={0} height={0} className='rounded-full w-full h-full' /> : <Image src='/assets/icons/user.svg' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
+                        {userContent.photoURL ? <Image src={userContent.photoURL} alt='profile' width={0} height={0} className='rounded-full w-full h-full object-cover' sizes=' (max-width: 768px) 100vw, (max-width: 1024px) 100vw, 1024px' /> : <Image src='/assets/icons/user.svg' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
                     </div>
                     <div className='text-sm'>
-                        <p className='font-bold'>{user.fullname}</p>
+                        <p className='font-bold'>{userContent.fullname}</p>
                         <p className='text-xs text-gray-500'>{getTime(item.createdAt)}</p>
                     </div>
                 </div>
@@ -98,7 +152,9 @@ const CardContent = ({ item, uid }) => {
                 <div className='mt-3 bg-gray-200 rounded-md'>
                     {
                         item.file && item.file.type.includes('image') ? (
-                            <Image src={item.file.url} alt='image' width={500} height={500} className='rounded-md' />
+                            <div className='w-full h-52 2xl:h-[25rem]'>
+                                <Image src={item.file.url} alt='image' width={0} height={0} className='rounded-md w-full h-full object-cover' sizes=' (max-width: 768px) 100vw, (max-width: 1024px) 100vw, 1024px' />
+                            </div>
                         ) : item.file && item.file.type.includes('video') ? (
                             <video src={item.file.url} controls className='w-full h-full rounded-md'></video>
                         ) : null
@@ -133,18 +189,21 @@ const CardContent = ({ item, uid }) => {
                     <div className='px-5 py-4 border-t'>
                         <div className='flex items-center gap-2'>
                             <div className='w-10 h-10 bg-gray-200 rounded-full'>
-
+                                {user.photoURL ? <Image src={user.photoURL} alt='profile' width={0} height={0} className='rounded-full w-full h-full object-cover' sizes=' (max-width: 768px) 100vw, (max-width: 1024px) 100vw, 1024px' /> : <Image src='/assets/icons/user.svg' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
                             </div>
                             <div className='flex-1 text-sm'>
-                                <input type='text' placeholder='Tulis komentar...' className='w-full px-5 py-2  rounded-full border' />
+                                <input type='text' placeholder='Tulis komentar...' className='w-full px-5 py-2  rounded-full border focus:outline-none focus:border-primary-color' name='comment' onChange={handleChangeComment} value={inputComment}  />
+                            </div>
+                            <div className='w-10 h-10 rounded-full flex items-center justify-center cursor-pointer border hover:border-primary-color' onClick={handleUploadComment}>
+                                <Image src='/assets/icons/send.svg' alt='send' width={20} height={20} />
                             </div>
                         </div>
                         <div className='mt-3 flex flex-col gap-2'>
-                            {[1, 2].map((_, index) => (
+                            {listComment.map((item, index) => (
                                 <CardReply key={index}
-                                    name='John Doe'
-                                    time='10 minute lalu'
-                                    content='Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec purus ut libero aliquam tincidunt. Nullam nec purus ut libero aliquam tincidunt.'
+                                    uid={item.uid}
+                                    time={convertTime(item.createdAt)}
+                                    content={item.comment}
                                 />
                             ))
                             }

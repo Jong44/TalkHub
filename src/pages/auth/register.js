@@ -12,13 +12,16 @@ import { useRouter } from "next/router";
 
 const Index = () => {
   const [loading, setLoading] = useState(false);
-  const router = useRouter(); 
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
+  const [isShowPassword, setIsShowPassword] = useState(false);
+  const [isShowConfirmPassword, setIsShowConfirmPassword] = useState(false);
 
   const alertSwal = (title, text, icon) => {
     Swal.fire({
@@ -36,32 +39,46 @@ const Index = () => {
     confirmPassword: "",
   });
 
+  const checkUsername = async (username) => {
+    // cek username apakah sudah sesuai dengan ketentuan
+    const regex = /^[a-zA-Z0-9_]{5,}[a-zA-Z]+[0-9]*$/;
+    if (!regex.test(username)) {
+      setError({ ...error, username: "Username tidak sesuai ketentuan" });
+      return;
+    }
+  };
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if(formData.name === ""){
-      setError({...error, name: "Nama tidak boleh kosong"})
+    if (formData.name === "") {
+      setError({ ...error, name: "Nama tidak boleh kosong" })
       return;
     }
-    if(formData.email === ""){
-      setError({...error, email: "Email tidak boleh kosong"})
+    if (formData.username === "") {
+      setError({ ...error, username: "Username tidak boleh kosong" });
       return;
     }
-    if(formData.password === ""){
-      setError({...error, password: "Password tidak boleh kosong"})
+    if (formData.email === "") {
+      setError({ ...error, email: "Email tidak boleh kosong" })
       return;
     }
-    if(formData.confirmPassword === ""){
-      setError({...error, confirmPassword: "Konfirmasi Password tidak boleh kosong"})
+    if (formData.password === "") {
+      setError({ ...error, password: "Password tidak boleh kosong" })
+      return;
+    }
+    if (formData.confirmPassword === "") {
+      setError({ ...error, confirmPassword: "Konfirmasi Password tidak boleh kosong" })
       return;
     }
     if (formData.password !== formData.confirmPassword) {
       setError({ ...error, confirmPassword: "Password tidak sama" });
       return;
     }
+    checkUsername(formData.username);
     setLoading(true);
     try {
       const response = await registerWithEmailAndPassword({
@@ -84,15 +101,16 @@ const Index = () => {
 
   const uploadFirestore = async (uid) => {
     try {
-        const docRef = await setDoc(doc(db, "users", uid), {
-            fullname: formData.name,
-            email: formData.email,
-            uid: uid,
-        });
-    }catch(e){
-        throw Error(e.message);
+      const docRef = await setDoc(doc(db, "users", uid), {
+        fullname: formData.name,
+        username: formData.username,
+        email: formData.email,
+        uid: uid,
+      });
+    } catch (e) {
+      throw Error(e.message);
     }
-}
+  }
 
   if (loading) {
     return (
@@ -123,10 +141,18 @@ const Index = () => {
           <form className="flex flex-col gap-2 mb-3" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-1">
               <label htmlFor="name" className="text-sm">
-                Nama
+                Nama Lengkap
               </label>
-              <input type="text" id="name" className="border p-2 rounded-md" onChange={handleChange} name="nama"  />
+              <input type="text" id="name" className="border p-2 rounded-md" onChange={handleChange} name="nama" />
               {error.name && <p className="text-red-500 text-xs">{error.name}</p>}
+            </div>
+            <div className="flex flex-col gap-1">
+              <label htmlFor="username" className="text-sm">
+                Username
+              </label>
+              <input type="text" id="username" className="border p-2 rounded-md" onChange={handleChange} name="username" />
+              <p className="text-xs text-gray-400">Username minimal 5 karakter dan harus mengandung huruf dan angka</p>
+              {error.username && <p className="text-red-500 text-xs">{error.username}</p>}
             </div>
             <div className="flex flex-col gap-1">
               <label htmlFor="email" className="text-sm">
@@ -143,22 +169,42 @@ const Index = () => {
               <label htmlFor="password" className="text-sm">
                 Password
               </label>
-              <input
-                type="password"
-                id="password"
-                className="border p-2 rounded-md" onChange={handleChange} name="password"
-              />
+              <div className="flex justify-between items-center gap-5">
+                <input type={isShowPassword ? "text" : "password"} id="password" className="border p-2 rounded-md flex-1" onChange={handleChange} name="password" />
+                {isShowPassword ? (
+                  <div onClick={() => setIsShowPassword(!isShowPassword)}>
+                    <Icon icon={["fas", "eye"]} className="text-gray-400 cursor-pointer" />
+                  </div>
+                ) : (
+                  <div onClick={() => setIsShowPassword(!isShowPassword)}>
+                    <Icon icon={["fas", "eye-slash"]} className="text-gray-400 cursor-pointer" />
+                  </div>
+                )
+                }
+              </div>
               {error.password && <p className="text-red-500 text-xs">{error.password}</p>}
             </div>
             <div className="flex flex-col gap-1 mt-3">
               <label htmlFor="confirmPassword" className="text-sm">
                 Konfirmasi Password
               </label>
-              <input
-                type="password"
-                id="confirmPassword"
-                className="border p-2 rounded-md" onChange={handleChange} name="confirmPassword"
-              />
+              <div className="flex justify-between items-center gap-5">
+                <input
+                  type={isShowConfirmPassword ? "text" : "password"}
+                  id="confirmPassword"
+                  className="border p-2 rounded-md flex-1" onChange={handleChange} name="confirmPassword"
+                />
+                {isShowConfirmPassword ? (
+                  <div onClick={() => setIsShowConfirmPassword(!isShowConfirmPassword)}>
+                    <Icon icon={["fas", "eye"]} className="text-gray-400 cursor-pointer" />
+                  </div>
+                ) : (
+                  <div onClick={() => setIsShowConfirmPassword(!isShowConfirmPassword)}>
+                    <Icon icon={["fas", "eye-slash"]} className="text-gray-400 cursor-pointer" />
+                  </div>
+                )
+                }
+              </div>
               {error.confirmPassword && <p className="text-red-500 text-xs">{error.confirmPassword}</p>}
             </div>
             <PrimaryButton type={'submit'} text={"Daftar"} />

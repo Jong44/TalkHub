@@ -174,7 +174,7 @@ const Profile = () => {
                         )
                     }
 
-                    <div className='absolute right-5 bottom-5 flex justify-end items-end gap-5'>
+                    <div className='absolute right-5 bottom-5 flex justify-end items-end gap-5 max-md:top-5 max-md:items-start'>
                         {
                             banner ? (
                                 <div className='flex gap-5'>

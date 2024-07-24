@@ -101,6 +101,10 @@ const Index = () => {
                 name="email"
                 onChange={handleChange}
               />
+              {error.email && (
+                <p className="text-xs text-red-500">{error.email}</p>
+              )  
+              }
             </div>
             <div className="flex flex-col gap-1 mt-3">
               <label htmlFor="password" className="text-sm">
@@ -113,6 +117,9 @@ const Index = () => {
                 name="password"
                 onChange={handleChange}
               />
+              {error.password && (
+                <p className="text-xs text-red-500">{error.password}</p>
+              )}
             </div>
             <PrimaryButton type={'submit'} text={"Masuk"} />
           </form>

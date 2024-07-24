@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import React, {useState, useEffect} from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Swal from 'sweetalert2'
 import Icon from '../icon'
@@ -40,6 +40,7 @@ const Navbar = () => {
     ]
     const [data, setData] = useState({})
     const [loading, setLoading] = useState(true)
+    const [isOpen, setIsOpen] = useState(false)
 
     const alertCommingSoon = () => {
         Swal.fire({
@@ -94,29 +95,29 @@ const Navbar = () => {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             setData(docSnap.data())
-        }else{
+        } else {
             console.log('Data tidak ditemukan')
         }
-      }
+    }
     useEffect(() => {
-       const fetchData = async () => {
-          try {
-            const response = await getUser()
-            if(response.status === 'success'){
-              handleGetData(response.data)
+        const fetchData = async () => {
+            try {
+                const response = await getUser()
+                if (response.status === 'success') {
+                    handleGetData(response.data)
+                }
+            } catch (error) {
+                console.log(error)
+            } finally {
+                setLoading(false)
             }
-          } catch (error) {
-            console.log(error)
-          } finally {
-            setLoading(false)
-          }
         }
         fetchData()
         console.log(data)
-      } , [])
+    }, [])
 
 
-    
+
 
 
 
@@ -144,7 +145,7 @@ const Navbar = () => {
                 </div>
                 <div className='flex items-center gap-5'>
                     <Link className='rounded-full bg-gray-200 w-10 h-10' href="/profile">
-                    {loading ? <div className='animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary-color'></div> : data.photoURL ? <Image src={data.photoURL} alt='profile' width={0} height={0} className='rounded-full' /> : <Image src='/assets/icons/user.svg' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
+                        {loading ? <div className='animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary-color'></div> : data.photoURL ? <Image src={data.photoURL} alt='profile' width={0} height={0} className='rounded-full' /> : <Image src='/assets/icons/user.svg' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
                     </Link>
                     <div className='w-fit cursor-pointer' onClick={logoutClick}>
                         <Icon icon={['fas', 'right-from-bracket']} className='text-xl text-primary-color' />
@@ -153,27 +154,36 @@ const Navbar = () => {
             </div>
             {/* Mobile Menu */}
             <div className='hidden max-md:flex justify-between items-center'>
-                {menu.map((item, index) => {
-                    if(item.soon) {
-                        return (
-                            <Icon key={index} icon={item.icon} className='text-xl cursor-pointer' onClick={alertCommingSoon} />
-                        )
-                    }
-                    else{
-                        return (
-                        <Link href={item.url} key={index}>
-                            <Icon key={index} icon={item.icon} className={router.pathname === item.url ? 'text-primary-color font-bold text-xl' : 'text-xl'} />
-                        </Link>
-                    )
-                    }
-                })}
-                <Link className='rounded-full bg-gray-200 w-10 h-10' href="/profile">
-                    {loading ? <div className='animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary-color'></div> : data.photoURL ? <Image src={data.photoURL} alt='profile' width={0} height={0} className='rounded-full' /> : <Image src='/images/avatar.png' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
-                </Link>
-                <div className='w-fit cursor-pointer' onClick={logoutClick}>
-                    <Icon icon={['fas', 'right-from-bracket']} className='text-xl text-primary-color' />
+                <Image src='/assets/icons/menu.svg' alt='logo' width={25} height={20} className='cursor-pointer' onClick={()=>setIsOpen(!isOpen)} />
+                <div className='flex items-center gap-5'>
+                    <Link className='rounded-full bg-gray-200 w-10 h-10' href="/profile"  onClick={()=>setIsOpen(false)}>
+                        {loading ? <div className='animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary-color'></div> : data.photoURL ? <Image src={data.photoURL} alt='profile' width={0} height={0} className='rounded-full' /> : <Image src='/images/avatar.png' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
+                    </Link>
+                    <div className='w-fit cursor-pointer' onClick={logoutClick}>
+                        <Icon icon={['fas', 'right-from-bracket']} className='text-xl text-primary-color' />
+                    </div>
                 </div>
             </div>
+            {
+                isOpen && (
+                    <div className='hidden max-md:flex flex-col gap-1 absolute top-24 bg-white w-[10rem] h-[10rem] z-20 rounded-md p-5 '>
+                        {
+                            menu.map((item, index) => {
+                                if (item.soon) {
+                                    return (
+                                        <p key={index} onClick={alertCommingSoon} className='cursor-pointer font-semibold hover:text-primary-color'>{item.title}</p>
+                                    )
+                                }
+                                return (
+                                    <Link href={item.url} key={index} className=' hover:text-primary-color' onClick={()=>setIsOpen(false)}>
+                                        <p className={router.pathname === item.url ? 'text-primary-color font-semibold' : 'font-semibold'}>{item.title}</p>
+                                    </Link>
+                                )
+                            })
+                        }
+                    </div>
+                )
+            }
         </nav>
     )
 }

@@ -174,13 +174,13 @@ const CardPosting = ({uid, photoURL}) => {
         <div className='p-4'>
            <div className='flex items-start gap-3'>
               <div className='w-12 h-12'>
-              {photoURL && photoURL !== "" ? <Image src={photoURL} alt='profile' width={0} height={0} className='rounded-full w-full h-full' /> : <Image src='/assets/icons/user.svg' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
+              {photoURL && photoURL !== "" ? <Image src={photoURL} alt='profile' width={0} height={0} className='rounded-full w-full h-full object-cover' sizes=' (max-width: 768px) 100vw, (max-width: 1024px) 100vw, 1024px' /> : <Image src='/assets/icons/user.svg' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
               </div>
               <div className='flex-1'>
                 <textarea className='w-full p-3 resize-none focus:outline-none text-sm' placeholder='What are you thinking?' onChange={handleChange} value={caption}></textarea>
                 {
                   file.file && (
-                    <div className='w-full h-44 mt-3 bg-gray-200 rounded-md relative'>
+                    <div className='w-full h-52 mt-3 bg-gray-200 rounded-md relative 2xl:h-[25rem]'>
                       {
                         file.file && file.type.includes('image') ? (
                           <>
