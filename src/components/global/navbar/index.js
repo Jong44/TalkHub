@@ -104,7 +104,10 @@ const Navbar = () => {
             try {
                 const response = await getUser()
                 if (response.status === 'success') {
-                    handleGetData(response.data)
+                    handleGetData(response.data)   
+                    console.log(response.data)
+                    console.log(data)
+                    console.log('data berhasil diambil')
                 }
             } catch (error) {
                 console.log(error)
@@ -113,13 +116,7 @@ const Navbar = () => {
             }
         }
         fetchData()
-        console.log(data)
     }, [])
-
-
-
-
-
 
     return (
         <nav className='px-[13rem] py-5 border bg-white max-lg:p-5 text-text-color'>
@@ -145,7 +142,7 @@ const Navbar = () => {
                 </div>
                 <div className='flex items-center gap-5'>
                     <Link className='rounded-full bg-gray-200 w-10 h-10' href="/profile">
-                        {loading ? <div className='animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary-color'></div> : data.photoURL ? <Image src={data.photoURL} alt='profile' width={0} height={0} className='rounded-full' /> : <Image src='/assets/icons/user.svg' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
+                        {loading ? <div className='animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary-color'></div> : data.photoURL ? <Image src={data.photoURL} alt='profile' width={0} height={0} className='rounded-full w-full h-full' sizes=' (max-width: 768px) 100vw, (max-width: 1024px) 100vw, 1024px' /> : <Image src='/assets/icons/user.svg' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
                     </Link>
                     <div className='w-fit cursor-pointer' onClick={logoutClick}>
                         <Icon icon={['fas', 'right-from-bracket']} className='text-xl text-primary-color' />
@@ -157,7 +154,7 @@ const Navbar = () => {
                 <Image src='/assets/icons/menu.svg' alt='logo' width={25} height={20} className='cursor-pointer' onClick={()=>setIsOpen(!isOpen)} />
                 <div className='flex items-center gap-5'>
                     <Link className='rounded-full bg-gray-200 w-10 h-10' href="/profile"  onClick={()=>setIsOpen(false)}>
-                        {loading ? <div className='animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary-color'></div> : data.photoURL ? <Image src={data.photoURL} alt='profile' width={0} height={0} className='rounded-full' /> : <Image src='/images/avatar.png' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
+                        {loading ? <div className='animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary-color'></div> : data.photoURL ? <Image src={data.photoURL} alt='profile' width={0} height={0} className='rounded-full w-full h-full' sizes=' (max-width: 768px) 100vw, (max-width: 1024px) 100vw, 1024px' /> : <Image src='/assets/icons/user.svg' alt='profile' width={0} height={0} className='rounded-full w-full h-full ' />}
                     </Link>
                     <div className='w-fit cursor-pointer' onClick={logoutClick}>
                         <Icon icon={['fas', 'right-from-bracket']} className='text-xl text-primary-color' />
