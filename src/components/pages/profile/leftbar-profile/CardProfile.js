@@ -2,7 +2,7 @@ import CardLayout from '@/components/global/cardlayout'
 import React, { useRef, useState } from 'react'
 import Image from 'next/image'
 import Icon from '@/components/global/icon'
-import { getDownloadURL, getStorage, ref, uploadBytesResumable } from '@firebase/storage'
+import { deleteObject, getDownloadURL, getStorage, ref, uploadBytesResumable } from '@firebase/storage'
 import db from '@/config/firestore'
 import { doc, setDoc } from '@firebase/firestore'
 import Swal from 'sweetalert2'
@@ -12,6 +12,7 @@ const CardProfile = ({ photoProfile, uid }) => {
   const router = useRouter()
   const refProfile = useRef(null)
   const [profile, setProfile] = useState(null)
+  const [isEdit, setIsEdit] = useState(false)
   const [photo, setPhoto] = useState(null)
   const [progress, setProgress] = useState(0)
   const handleProfile = () => {
@@ -24,6 +25,7 @@ const CardProfile = ({ photoProfile, uid }) => {
       if (name === 'profile') {
         setProfile(URL.createObjectURL(file))
         setPhoto(file)
+        setIsEdit(true)
       }
     }
   }
@@ -61,6 +63,14 @@ const CardProfile = ({ photoProfile, uid }) => {
     try {
       if(profile) {
         const storage = getStorage();
+        if(photoProfile) {
+          const httpRef = ref(storage, photoProfile)
+          deleteObject(httpRef).then(() => {
+            console.log('delete success')
+          } ).catch((error) => {
+            console.log('delete error')
+          })
+        }
         const storageRef = ref(storage, `profile/${uid}/`+photo.name);
         alertUpload()
         const uploadTask = uploadBytesResumable(storageRef, photo)
@@ -85,8 +95,7 @@ const CardProfile = ({ photoProfile, uid }) => {
 
   const handleSaveProfile = () => {
     uploadProfile()
-    setProfile(null)
-    router.reload()
+    setIsEdit(false)
   }
 
   const updateFirestore = ({
@@ -119,7 +128,7 @@ const CardProfile = ({ photoProfile, uid }) => {
       </div>
       <div className='absolute right-7 bottom-7 flex justify-end items-end gap-1'>
         {
-          profile && (
+          isEdit && (
             <div className='flex gap-1'>
               <div className='h-8 w-8 rounded-full bg-white flex justify-center items-center hover:border hover:border-primary-color' onClick={handleSaveProfile}>
                 <Icon icon={['fas', 'check']} className='text-primary-color' />

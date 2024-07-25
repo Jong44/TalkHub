@@ -14,13 +14,14 @@ import { collection, doc, getDoc, getDocs, query, setDoc, where } from '@firebas
 import db from '@/config/firestore'
 import CardContent from '@/components/global/cardcontent'
 import Swal from 'sweetalert2'
-import { getDownloadURL, getStorage, ref, uploadBytesResumable } from '@firebase/storage'
+import { deleteObject, getDownloadURL, getStorage, ref, uploadBytesResumable } from '@firebase/storage'
 import { useRouter } from 'next/router'
 
 const Profile = () => {
     const router = useRouter()
     const refBanner = useRef(null)
     const [banner, setBanner] = useState(null)
+    const [isEdit, setIsEdit] = useState(false)
     const [photo, setPhoto] = useState(null)
     const [progress, setProgress] = useState(0)
     const [dataUser, setDataUser] = useState({})
@@ -69,6 +70,7 @@ const Profile = () => {
             if (name === 'banner') {
                 setBanner(URL.createObjectURL(file))
                 setPhoto(file)
+                setIsEdit(true)
             }
         }
     }
@@ -100,6 +102,15 @@ const Profile = () => {
         try {
             if (photo) {
                 const storage = getStorage()
+                // Ketika dataUser banner tidak kosong, maka hapus file yang lama
+                if (dataUser.banner) {
+                    const httpRef = ref(storage, dataUser.banner)
+                    deleteObject(httpRef).then(() => {
+                        console.log('Berhasil menghapus file lama')
+                    }).catch((error) => {
+                        console.log('Gagal menghapus file lama')
+                    })
+                }
                 const storageRef = ref(storage, `banner/${uid}/` + photo.name)
                 alertUpload()
                 const uploadTask = uploadBytesResumable(storageRef, photo)
@@ -122,8 +133,7 @@ const Profile = () => {
 
     const handleSaveBanner = () => {
         handleUpload()
-        setBanner(null)
-        router.reload()
+        setIsEdit(false)
       }
     
       const updateFirestore = ({
@@ -176,7 +186,7 @@ const Profile = () => {
 
                     <div className='absolute right-5 bottom-5 flex justify-end items-end gap-5 max-md:top-5 max-md:items-start'>
                         {
-                            banner ? (
+                            isEdit ? (
                                 <div className='flex gap-5'>
                                     <div className='w-24'>
                                         <PrimaryButton onClick={handleSaveBanner} text={"Simpan"} />
